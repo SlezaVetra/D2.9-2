@@ -1,0 +1,75 @@
+>>> from django.contrib.auth.models import User
+>>> usernames = ('user_one', 'user_two')
+>>> for username in usernames:
+...     User.objects.create_user(username)
+
+>>> user_one = User.objects.get(username="user_one")
+>>> user_two = User.objects.get(username="user_two")
+>>> from author.models import Author
+>>> author_one = Author.objects.create(user=user_one)
+>>> author_two = Author.objects.create(user=user_two)
+
+>>> from post.models import Category
+>>> categories_names = ("спорт", "политика", "образование", "it")
+>>> category_sport = Category.objects.create(name=categories_names[0])
+>>> category_politic = Category.objects.create(name=categories_names[1])
+>>> category_edu = Category.objects.create(name=categories_names[2])
+>>> category_it = Category.objects.create(name=categories_names[3])
+
+>>> from post.models import Post
+>>> POST_NEWS = 0
+>>> POST_POST = 1
+>>>
+>>> post_one = Post.objects.create(author=author_one, post_type=POST_POST, title="First Post", text="Full description of first post")
+>>> post_two = Post.objects.create(author=author_two, post_type=POST_POST, title="Second Post", text="Full description of second post")
+>>> post_three = Post.objects.create(author=author_one, post_type=POST_NEWS, title="NEWS POST", text="BREAKING NEWS!")
+>>> post_one.categories.add(category_sport)
+>>> post_one.categories.add(category_it)
+>>> post_two.categories.add(category_politic, category_edu)
+>>> post_three.categories.add(category_it, category_edu)
+>>>
+>>> from comment.models import Comment
+>>> comment_one = Comment.objects.create(post=post_one, user=author_one.user, text="Comment one")
+>>> comment_two = Comment.objects.create(post=post_one, user=author_two.user, text="Comment one from second user")
+>>> comment_three = Comment.objects.create(post=post_two, user=author_one.user, text="Comment two")
+>>> comment_four = Comment.objects.create(post=post_three, user=author_two.user, text="Comment three")
+>>> post_one.like()
+>>> post_one.like()
+>>> post_one.like()
+>>> post_one.like()
+>>> post_two.like()
+>>> post_two.like()
+>>> post_two.like()
+>>> post_three.like()
+>>> comment_one.like()
+>>> comment_one.like()
+>>> comment_one.like()
+>>> comment_one.like()
+>>> comment_two.like()
+>>> comment_two.like()
+>>> comment_two.like()
+>>> comment_three.like()
+>>> comment_three.like()
+>>> comment_four.like()
+
+>>> author_one.update_rating(author_one.user)
+>>> author_one.rating
+29
+>>> author_two.rating
+0
+>>> author_two.update_rating(author_two.user)
+>>> author_two.rating
+15
+
+>>> best_author = Author.objects.all().order_by("-rating").first()
+>>> best_author.rating
+29
+>>> print(best_author.user.username, best_author.rating)
+user_one 29
+
+>>> best_post = Post.objects.all().order_by("-rating").first()
+>>> print(best_post.author.user.username, best_post.rating, best_post.title, best_post.preview())
+user_one 4 First Post Full description of first post
+
+>>> for comment in best_post.comments.all():
+...     print("Comment >> ", comment.created_at, comment.user.username, comment.rating, comment.text)
